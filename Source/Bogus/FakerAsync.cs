@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace Bogus
 {
+   /// <inheritdoc />
    public class FakerAsync<T> : FakerBase<T, FakerAsync<T>> where T : class
    {
       protected internal Dictionary<string, Func<Faker, Task<T>>> CreateActions = new(StringComparer.OrdinalIgnoreCase);
@@ -150,9 +151,14 @@ namespace Bogus
       ///    you'll need to include the `default` rule set name in the comma separated
       ///    list of rules to run. (ex: "ruleSetA, ruleSetB, default")
       /// </param>
-      public virtual Task<T[]> Generate(int count, string ruleSets = null)
+      public virtual async Task<T[]> Generate(int count, string ruleSets = null)
       {
-         return Task.WhenAll(GenerateLazy(count, ruleSets).ToArray());
+         var items = new T[count];
+         for (var i = 0; i < count; i++)
+         {
+            items[i] = await Generate(ruleSets).ConfigureAwait(false);
+         }
+         return items;
       }
 
       /// <summary>
